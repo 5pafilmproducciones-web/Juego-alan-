@@ -13,6 +13,7 @@ import {
   CheckCircle,
   Delete,
   ArrowRight,
+  Trash2,
 } from 'lucide-react';
 import { ALL_100_ALTERNATED_GAMES } from '../data/combinedGamesData';
 
@@ -23,6 +24,8 @@ interface StudentProfileSwitcherModalProps {
   activeAccountId: string;
   onSelectAccount: (account: StudentAccount) => void;
   onCreateAccount: (newAccount: StudentAccount) => void;
+  onDeleteAccount?: (accountId: string) => void;
+  onDeleteAllAccounts?: () => void;
   onAddToast: (title: string, description?: string, type?: 'success' | 'error' | 'info') => void;
 }
 
@@ -35,6 +38,8 @@ export const StudentProfileSwitcherModal: React.FC<StudentProfileSwitcherModalPr
   activeAccountId,
   onSelectAccount,
   onCreateAccount,
+  onDeleteAccount,
+  onDeleteAllAccounts,
   onAddToast,
 }) => {
   const [selectedTargetAccount, setSelectedTargetAccount] = useState<StudentAccount | null>(null);
@@ -183,55 +188,116 @@ export const StudentProfileSwitcherModal: React.FC<StudentProfileSwitcherModalPr
               </p>
             </div>
 
-            {/* Students Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
-              {accounts.map((acc) => {
-                const isActive = acc.id === activeAccountId;
-                return (
-                  <button
-                    key={acc.id}
-                    onClick={() => handleAccountClick(acc)}
-                    className={`p-4 rounded-2xl border text-left transition-all transform hover:scale-102 flex items-center gap-3 relative ${
-                      isActive
-                        ? 'bg-violet-950/80 border-violet-500 ring-2 ring-violet-500/40 shadow-lg'
-                        : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
-                    }`}
-                  >
-                    <span className="text-4xl">{acc.avatar}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="text-sm font-black text-white truncate">{acc.name}</h4>
-                        {isActive && (
-                          <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
-                            Activo
+            {/* Students Grid or Empty State */}
+            {accounts.length === 0 ? (
+              <div className="text-center py-8 px-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
+                <div className="w-16 h-16 rounded-3xl bg-violet-950/80 border border-violet-800 text-violet-400 mx-auto flex items-center justify-center text-3xl shadow-lg">
+                  👨‍👩‍👧
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-base font-black text-white">No hay alumnos registrados</h4>
+                  <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+                    Todos los alumnos han sido eliminados. Agrega a tu hijo/a para comenzar su aventura desde cero.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setNewName('');
+                    setNewPin('1111');
+                    setActiveView('create');
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 text-white font-bold text-xs shadow-lg inline-flex items-center gap-2 active:scale-95 transition-all"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>+ Registrar a mi Hijo/a</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
+                {accounts.map((acc) => {
+                  const isActive = acc.id === activeAccountId;
+                  return (
+                    <div
+                      key={acc.id}
+                      className={`p-4 rounded-2xl border text-left transition-all flex items-center gap-3 relative group ${
+                        isActive
+                          ? 'bg-violet-950/80 border-violet-500 ring-2 ring-violet-500/40 shadow-lg'
+                          : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleAccountClick(acc)}
+                        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                      >
+                        <span className="text-4xl">{acc.avatar}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-sm font-black text-white truncate">{acc.name}</h4>
+                            {isActive && (
+                              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                                Activo
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
+                            {acc.age} años · {acc.profile.gems} 💎
+                          </p>
+                          <span className="inline-block mt-1 text-[10px] font-bold text-violet-300 bg-violet-950/60 px-2 py-0.5 rounded border border-violet-800">
+                            🔑 PIN: {acc.pin}
                           </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        {acc.age} años · {acc.profile.gems} 💎
-                      </p>
-                      <span className="inline-block mt-1 text-[10px] font-bold text-violet-300 bg-violet-950/60 px-2 py-0.5 rounded border border-violet-800">
-                        🔑 Clave PIN: {acc.pin}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                        </div>
+                      </button>
 
-            {/* Create New Account Button */}
-            <div className="pt-2 border-t border-slate-800 flex justify-between items-center">
-              <span className="text-xs text-slate-400">¿Nuevo alumno en casa o aula?</span>
+                      {/* Delete individual student */}
+                      {onDeleteAccount && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`¿Seguro que deseas eliminar al alumno ${acc.name}?`)) {
+                              onDeleteAccount(acc.id);
+                            }
+                          }}
+                          className="opacity-40 group-hover:opacity-100 p-2 rounded-xl text-rose-400 hover:bg-rose-950/60 hover:text-rose-300 transition-all"
+                          title={`Eliminar a ${acc.name}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Create New Account Button & Delete All */}
+            <div className="pt-2 border-t border-slate-800 flex flex-wrap justify-between items-center gap-2">
+              {accounts.length > 0 && onDeleteAllAccounts && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('¿Seguro que deseas eliminar TODOS los alumnos registrados? Esta acción no se puede deshacer.')) {
+                      onDeleteAllAccounts();
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-400 hover:text-white hover:bg-rose-950/60 border border-rose-900/40 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Eliminar Todos</span>
+                </button>
+              )}
+
               <button
                 onClick={() => {
                   setNewName('');
                   setNewPin('1111');
                   setActiveView('create');
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-md transition-all"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-md transition-all ml-auto"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>Crear Alumno</span>
+                <span>+ Crear Alumno</span>
               </button>
             </div>
           </div>

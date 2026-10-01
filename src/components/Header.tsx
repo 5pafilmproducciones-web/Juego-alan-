@@ -12,6 +12,7 @@ import {
   Flame,
   Gem,
   Cloud,
+  Share2,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -24,6 +25,7 @@ interface HeaderProps {
   onOpenProfileSwitcher: () => void;
   onOpenAuthModal?: () => void;
   isCloudAuthenticated?: boolean;
+  onOpenShareModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -36,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfileSwitcher,
   onOpenAuthModal,
   isCloudAuthenticated = false,
+  onOpenShareModal,
 }) => {
   const tabs = [
     { id: 'dashboard' as TabType, label: 'Dashboard', icon: LayoutDashboard },
@@ -81,10 +84,10 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-xl group-hover:scale-110 transition-transform">{student.avatar}</span>
               <div className="text-left hidden sm:block">
                 <span className="text-xs font-black text-white block leading-tight truncate max-w-[110px]">
-                  {student.name}
+                  {student.name || 'Crear Alumno'}
                 </span>
                 <span className="text-[10px] text-violet-300 font-semibold block">
-                  Cambiar (PIN 🔑)
+                  {student.name ? 'Cambiar (PIN 🔑)' : '+ Nuevo Perfil'}
                 </span>
               </div>
             </button>
@@ -121,6 +124,18 @@ export const Header: React.FC<HeaderProps> = ({
                     isCloudAuthenticated ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'
                   }`}
                 />
+              </button>
+            )}
+
+            {/* Share Public App Link Button */}
+            {onOpenShareModal && (
+              <button
+                onClick={onOpenShareModal}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-500/40 bg-blue-950/60 hover:bg-blue-900 text-blue-300 text-xs font-bold transition-all shadow-sm active:scale-95"
+                title="Compartir enlace público de la aplicación"
+              >
+                <Share2 className="w-4 h-4 text-cyan-400" />
+                <span className="hidden sm:inline">Compartir</span>
               </button>
             )}
 

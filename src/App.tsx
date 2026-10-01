@@ -30,6 +30,7 @@ import { SettingsView } from './components/SettingsView';
 import { PreviewReportModal } from './components/PreviewReportModal';
 import { StudentProfileSwitcherModal } from './components/StudentProfileSwitcherModal';
 import { SupabaseAuthModal } from './components/SupabaseAuthModal';
+import { ShareAppModal } from './components/ShareAppModal';
 import { useSupabaseAuth } from './hooks/useSupabaseAuth';
 import { ToastContainer } from './components/Toast';
 import { stopSpeaking } from './services/speechService';
@@ -58,6 +59,7 @@ export function App() {
   );
   const [isProfileSwitcherOpen, setIsProfileSwitcherOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { user, profile } = useSupabaseAuth();
 
   // Keep active account synchronized in accounts list
@@ -97,6 +99,46 @@ export function App() {
     setMissions(newAccount.missions);
     setRecords(newAccount.records);
   };
+
+  const handleDeleteAccount = (accountId: string) => {
+    const remaining = accounts.filter((a) => a.id !== accountId);
+    setAccounts(remaining);
+    if (activeAccountId === accountId) {
+      if (remaining.length > 0) {
+        handleSelectAccount(remaining[0]);
+      } else {
+        setActiveAccountId('');
+        setStudent(INITIAL_STUDENT_PROFILE);
+        setRecords([]);
+      }
+    }
+    addToast('Alumno Eliminado', 'Se ha eliminado el alumno correctamente', 'info');
+  };
+
+  const handleDeleteAllAccounts = () => {
+    setAccounts([]);
+    setActiveAccountId('');
+    setStudent(INITIAL_STUDENT_PROFILE);
+    setRecords([]);
+    localStorage.removeItem('aventura_student_accounts');
+    localStorage.removeItem('aventura_student');
+    localStorage.removeItem('aventura_records');
+    addToast('Alumnos Eliminados', 'Todos los alumnos han sido eliminados del sistema', 'success');
+  };
+
+  // Immediate purge of all previous demo accounts upon request
+  React.useEffect(() => {
+    const hasDemoAccounts = accounts.some(
+      (a) =>
+        a.id === 'student-mateo' ||
+        a.id === 'student-sofia' ||
+        a.id === 'student-lucas' ||
+        a.name === 'Mateo González'
+    );
+    if (hasDemoAccounts || student.name === 'Mateo González') {
+      handleDeleteAllAccounts();
+    }
+  }, []);
 
   // Active Selected Mission for Core Operations
   const [activeMissionId, setActiveMissionId] = useState<string>(
@@ -222,6 +264,7 @@ export function App() {
         onOpenProfileSwitcher={() => setIsProfileSwitcherOpen(true)}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
         isCloudAuthenticated={Boolean(user)}
+        onOpenShareModal={() => setIsShareModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -315,6 +358,8 @@ export function App() {
         activeAccountId={activeAccountId}
         onSelectAccount={handleSelectAccount}
         onCreateAccount={handleCreateAccount}
+        onDeleteAccount={handleDeleteAccount}
+        onDeleteAllAccounts={handleDeleteAllAccounts}
         onAddToast={addToast}
       />
 
@@ -327,6 +372,13 @@ export function App() {
         onSyncGemsFromCloud={(newGems) =>
           setStudent((prev) => ({ ...prev, gems: Math.max(prev.gems, newGems) }))
         }
+        onAddToast={addToast}
+      />
+
+      {/* Share Public App Link Modal */}
+      <ShareAppModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
         onAddToast={addToast}
       />
 
